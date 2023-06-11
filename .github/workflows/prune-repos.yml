@@ -1,0 +1,30 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '39 21 3 * *'
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    outputs:
+      base-epoch: ${{ steps.run.outputs.base-epoch }}
+    steps:
+      - id: run
+        uses: sarisia/actions-prune-repos@main
+        with:
+          github-pat: ${{ secrets.PAT }}
+          keep-topics: |
+            keep
+
+  run:
+    needs: dry-run
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: sarisia/actions-prune-repos@main
+        with:
+          github-pat: ${{ secrets.PAT }}
+          keep-topics: |
+            keep
+          base-epoch: ${{ needs.dry-run.outputs.base-epoch }}
+          dry-run: false
